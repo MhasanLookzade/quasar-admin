@@ -2,11 +2,11 @@
   <div>
     <entity-index
       v-model:value="inputs"
-      title="لیست محصولات"
+      title="مدیریت دسته های محتوا"
       :api="api"
       :table="table"
       :table-keys="tableKeys"
-      :create-route-name="'Admin.User.Create'"
+      :create-route-name="'Admin.Set.Create'"
     >
       <template v-slot:table-cell="{inputData, showConfirmRemoveDialog}">
         <q-td :props="inputData.props">
@@ -19,7 +19,7 @@
             />
           </template>
           <template v-else-if="inputData.props.col.name === 'actions'">
-            <q-btn round flat dense size="md" color="info" icon="info" :to="{name:'Admin.Product.Show', params: {id: inputData.props.row.id}}">
+            <q-btn round flat dense size="md" color="info" icon="info" :to="{name:'Admin.Set.Show', params: {id: inputData.props.row.id}}">
               <q-tooltip>
                 مشاهده
               </q-tooltip>
@@ -48,13 +48,16 @@ export default {
   components: { EntityIndex },
   data () {
     return {
-      api: '/alaa/api/v2/admin/product',
+      model: null,
+      tags: [],
+      expanded: true,
+      api: '/alaa/api/v2/admin/set',
       tableKeys: {
         data: 'data',
         total: 'meta.total',
         currentPage: 'meta.current_page',
         perPage: 'meta.per_page',
-        pageKey: 'productPage'
+        pageKey: 'setPage'
       },
       table: {
         columns: [
@@ -73,44 +76,37 @@ export default {
             field: row => row.photo
           },
           {
-            name: 'title',
+            name: 'name',
             required: true,
-            label: 'عنوان',
+            label: 'نام',
             align: 'left',
-            field: row => row.title
+            field: row => row.name
           },
           {
-            name: 'product_type',
+            name: 'short_name',
             required: true,
-            label: 'نوع',
+            label: 'نام کوتاه',
             align: 'left',
-            field: row => row.product_type.display_name
+            field: row => row.short_name
           },
           {
-            name: 'attribute_set',
+            name: 'status',
             required: true,
-            label: 'دسته',
+            label: 'وضعیت',
             align: 'left',
-            field: row => row.attribute_set.name
+            field: row => row.status
           },
           {
-            name: 'enable',
+            name: 'show',
             required: true,
-            label: 'فعال',
+            label: 'نمایش',
             align: 'left',
-            field: row => (row.enable) ? 'فعال' : 'غیرفعال'
-          },
-          {
-            name: 'is_free',
-            required: true,
-            label: 'فعال',
-            align: 'left',
-            field: row => (row.is_free) ? 'رایگان' : 'پولی'
+            field: row => row.show
           },
           {
             name: 'actions',
             required: true,
-            label: '',
+            label: 'عملیات',
             align: 'left',
             field: ''
           }
@@ -118,21 +114,37 @@ export default {
         data: []
       },
       inputs: [
-        { type: 'input', name: 'id', value: null, label: 'شناسه', col: 'col-md-3' },
-        { type: 'input', name: 'name', value: null, label: 'نام', col: 'col-md-3' },
-        { type: 'input', name: 'short_description', value: null, label: 'توضیحات کوتاه', col: 'col-md-3' },
-        { type: 'input', name: 'long_description', value: null, label: 'توضیحات اجمالی', col: 'col-md-3' },
-        { type: 'select', name: 'product_type_id', value: null, options: [{ label: 'ساده', value: 1 }, { label: 'قابل پیکربندی', value: 2 }, { label: 'قابل انتخاب', value: 3 }, { label: 'اشتراک', value: 4 }], label: 'نوع محصول', col: 'col-md-3' },
-        { type: 'select', name: 'is_free', value: null, options: [{ label: 'رایگان', value: 1 }, { label: 'غیر رایگان', value: 0 }], label: 'وضعیت رایگان / غیر رایگان', col: 'col-md-3' },
-        { type: 'select', name: 'enable', value: null, options: [{ label: 'فعال', value: 1 }, { label: 'غیرفعال', value: 0 }], label: 'وضعیت فعال / غیرفعال', col: 'col-md-3' },
-        { type: 'select', name: 'display', value: null, options: [{ label: 'نمایش', value: 1 }, { label: 'عدم نمایش', value: 0 }], label: 'وضعیت نمایش / عدم نمایش', col: 'col-md-3' },
+        { type: 'input', name: 'id', value: null, label: 'شناسه', col: 'col-md-4' },
         { type: 'input', name: 'name', value: null, label: 'نام', col: 'col-md-4' },
-        { type: 'input', name: 'attribute_set_id', value: null, label: 'کد دسته', col: 'col-md-4' },
-        { type: 'dateRange', name: 'created_at_range', value: [], label: 'بازه تاریخ ایجاد', col: 'col-md-4' }
+        { type: 'input', name: 'shortName', value: null, label: 'نام کوتاه', col: 'col-md-6' },
+        { type: 'select', name: 'product_type_id', value: null, options: [{ label: 'فعال ', value: 1 }, { label: 'غیرفعال', value: 2 }], label: 'وضعیت', col: 'col-md-4' },
+        { type: 'select', name: 'product_type_id', value: null, options: [{ label: 'نمایش ', value: 1 }, { label: 'عدم نمایش', value: 2 }, { label: 'اشتراک', value: 4 }], label: 'وضعیت نمایش / عدم نمایش', col: 'col-md-6' }
       ]
     }
   },
   methods: {
+    createValue (val, done) {
+      // Calling done(var) when new-value-mode is not set or "add", or done(var, "add") adds "var" content to the model
+      // and it resets the input textbox to empty string
+      // ----
+      // Calling done(var) when new-value-mode is "add-unique", or done(var, "add-unique") adds "var" content to the model
+      // only if is not already set
+      // and it resets the input textbox to empty string
+      // ----
+      // Calling done(var) when new-value-mode is "toggle", or done(var, "toggle") toggles the model with "var" content
+      // (adds to model if not already in the model, removes from model if already has it)
+      // and it resets the input textbox to empty string
+      // ----
+      // If "var" content is undefined/null, then it doesn't tampers with the model
+      // and only resets the input textbox to empty string
+
+      if (val.length > 0) {
+        if (!this.tags.includes(val)) {
+          this.tags.push(val)
+        }
+        done(val, 'toggle')
+      }
+    },
     getRemoveMessage (row) {
       const firstName = row.first_name
       const lastName = row.last_name
